@@ -1,0 +1,46 @@
+[
+  {
+    "id": "posture",
+    "title": "준비자세 확인",
+    "description": "얼굴·양쪽 어깨·골반이 보이도록 카메라를 정면으로 바라보세요.",
+    "detection_type": "POSE_FACE",
+    "rule": "POSTURE",
+    "hold_seconds": 2,
+    "repetitions": 1,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "mouth_open",
+    "title": "입 크게 벌리기",
+    "description": "입을 크게 벌리고 유지한 뒤, 입을 다물어 다음 반복을 준비하세요.",
+    "detection_type": "FACE",
+    "rule": "MOUTH_OPEN",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "pucker",
+    "title": "입술 오므리기",
+    "description": "입술을 앞으로 모아 유지한 뒤, 중립 상태로 돌아오세요.",
+    "detection_type": "FACE",
+    "rule": "PUCKER",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "cheek",
+    "title": "볼 부풀리기",
+    "description": "양쪽 볼에 공기를 넣어 부풀려 주세요. 현재는 안내 및 직접 완료 모드입니다.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": true
+  }
+]

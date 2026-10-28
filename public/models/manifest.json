@@ -1,0 +1,8 @@
+{
+  "source": "Ultralytics YOLO11n-pose and MediaPipe FaceLandmarker float16 v1",
+  "input_size": 320,
+  "sha256": {
+    "face_landmarker.task": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
+    "yolo11n-pose-320.onnx": "21c1c8132020a73e93fa63e48e187b471c6c6a71d453f8af3204b4008cfe7865"
+  }
+}
