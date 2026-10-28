@@ -1,3 +1,4 @@
+import ModelStatusPanel from './ModelStatusPanel';
 import {useEffect,useRef,useState} from 'react';import {useNavigate} from 'react-router-dom';import {Camera,Check,RefreshCw,Video,VideoOff} from 'lucide-react';
 import {useCamera} from './useCamera';import {useTraining,browserExercises} from './useTraining';
 const labels:Record<string,string>={one_person:'한 명 검출',face_visible:'얼굴 검출',face_forward:'얼굴 정면',centered:'화면 중앙',shoulders_visible:'양쪽 어깨 검출',shoulders_aligned:'어깨 정렬',body_visible:'골반 검출',body_aligned:'보이는 상체 정렬',mouth_open:'입 벌림 조건',pucker:'입술 오므리기',hold_complete:'유지시간 완료',neutral_mouth:'중립 입 모양',smile:'양쪽 입꼬리 움직임'};
@@ -41,10 +42,10 @@ export default function TrainingPage(){
  <p className="guide-instruction">{idx===0?'정면을 바라봐 주세요.':idx===1?'입을 크게 벌려 2초간 유지하세요.':'입술을 오므려 2초간 유지하세요.'}</p>
  {ex&&<><div className="hold-target" style={{'--progress':Math.min(1,(a?.progress.hold_elapsed||0)/(a?.progress.hold_target||2))*360+'deg'} as React.CSSProperties}><span>{a&&!a.progress.calibrated?'중립 자세 측정':'유지 시간'}</span><strong>{(a?.progress.hold_elapsed||0).toFixed(1)}<small> / {a?.progress.hold_target||ex.hold_seconds}초</small></strong></div><p className="rep-count">반복 횟수 <b>{a?.progress.repetition||0} / {ex.repetitions}회</b></p></>}
  </aside></div>
- <details className="model-details"><summary>모델 연결 상태·측정값·상세 안내</summary> <ul className="criteria">{Object.entries(a?.criteria||{}).map(([k,v])=><li key={k} className={v===true?'passed':v===null?'unknown':'unmet'}><span>{v===true?'✓':v===null?'?':'○'}</span>{labels[k]||k}{v===null&&' · 확인 불가'}</li>)}</ul>
+ <details className="model-details"><summary>AI 모델 상태 · 성능 확인</summary><ModelStatusPanel models={models} analysis={a} active={camera.active&&training.running} preparing={training.preparing} error={error}/> <ul className="criteria">{Object.entries(a?.criteria||{}).map(([k,v])=><li key={k} className={v===true?'passed':v===null?'unknown':'unmet'}><span>{v===true?'✓':v===null?'?':'○'}</span>{labels[k]||k}{v===null&&' · 확인 불가'}</li>)}</ul>
  <p className="measurement-note">허리·척추 자세와 치료 효과를 판정하지 않습니다. 보이는 특징점만 사용합니다.</p>
  <p className="measurement-note">카메라를 켜면 이 브라우저에서만 자동 분석합니다. 영상은 전송·저장하지 않습니다. 조건을 만족하면 다음 단계로 자동 이동하고 마지막에는 결과를 저장합니다. 중지하려면 Webcam을 끄세요.</p>
  <p className="measurement-note">볼 부풀리기는 자동 판정 기준이 없어 이번 자동 훈련에 포함하지 않습니다.</p>
-<p>YOLO11n-pose: {models?.pose_model_loaded?'연결됨':'확인 필요'} / MediaPipe Face Landmarker: {models?.face_model_loaded?'연결됨':'확인 필요'}</p><p>추론 {a?.performance?.inference_ms??'—'}ms · 처리 {a?.performance?.fps??'—'} FPS · 브라우저 처리</p><div className="metrics">{Object.entries(a?.metrics||{}).map(([k,v])=><span key={k}>{k}: {v===null?'확인 불가':v.toFixed(3)}</span>)}</div><button disabled={training.running||training.preparing} onClick={()=>void training.reloadModels()}><RefreshCw size={14}/>모델 다시 준비</button></details>
+<p>추론 {a?.performance?.inference_ms??'—'}ms · 처리 {a?.performance?.fps??'—'} FPS · 브라우저 처리</p><div className="metrics">{Object.entries(a?.metrics||{}).map(([k,v])=><span key={k}>{k}: {v===null?'확인 불가':v.toFixed(3)}</span>)}</div><button disabled={training.running||training.preparing} onClick={()=>void training.reloadModels()}><RefreshCw size={14}/>모델 다시 준비</button></details>
  </section>
 }

@@ -1,0 +1,16 @@
+{
+  "shoulder_degrees": 10,
+  "body_degrees": 12,
+  "head_yaw": 18,
+  "head_pitch": 20,
+  "head_roll": 15,
+  "jaw_delta": 0.2,
+  "mouth_ratio_delta": 0.035,
+  "pucker_delta": 0.2,
+  "mouth_width_delta": 0.025,
+  "calibration_seconds": 2,
+  "calibration_samples": 8,
+  "max_frame_gap": 0.5,
+  "max_frame_age": 1.5,
+  "target_fps": 8
+}

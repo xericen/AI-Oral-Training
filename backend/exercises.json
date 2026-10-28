@@ -1,0 +1,112 @@
+[
+  {
+    "id": "posture",
+    "title": "준비자세 확인",
+    "description": "얼굴·양쪽 어깨·골반이 보이도록 카메라를 정면으로 바라보세요.",
+    "detection_type": "POSE_FACE",
+    "rule": "POSTURE",
+    "hold_seconds": 2,
+    "repetitions": 1,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "mouth_open",
+    "title": "입 크게 벌리기",
+    "description": "입을 크게 벌리고 유지한 뒤, 입을 다물어 다음 반복을 준비하세요.",
+    "detection_type": "FACE",
+    "rule": "MOUTH_OPEN",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "pucker",
+    "title": "입술 오므리기",
+    "description": "입술을 앞으로 모아 유지한 뒤, 중립 상태로 돌아오세요.",
+    "detection_type": "FACE",
+    "rule": "PUCKER",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": true,
+    "enabled": true
+  },
+  {
+    "id": "cheek",
+    "title": "볼 부풀리기",
+    "description": "양쪽 볼에 공기를 넣어 부풀려 주세요. 현재는 안내 및 직접 완료 모드입니다.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": true
+  },
+  {
+    "id": "smile",
+    "title": "입꼬리 당기기",
+    "description": "양쪽 입꼬리를 움직여 유지한 뒤 중립 상태로 돌아오세요. 미소 자체를 치료 효과로 판정하지 않습니다.",
+    "detection_type": "FACE",
+    "rule": "SMILE",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": true,
+    "enabled": false
+  },
+  {
+    "id": "tongue_palate",
+    "title": "혀를 입천장에 붙이기",
+    "description": "일반 RGB 웹캠으로 자동 판정하지 않습니다. 안내에 따라 수행한 뒤 직접 완료로 기록하세요.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": false
+  },
+  {
+    "id": "tongue_rotate",
+    "title": "입안에서 혀 회전",
+    "description": "일반 RGB 웹캠으로 자동 판정하지 않습니다. 안내에 따라 수행한 뒤 직접 완료로 기록하세요.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": false
+  },
+  {
+    "id": "swallow",
+    "title": "삼킴 연습",
+    "description": "일반 RGB 웹캠으로 자동 판정하지 않습니다. 안내에 따라 수행한 뒤 직접 완료로 기록하세요.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": false
+  },
+  {
+    "id": "pronunciation",
+    "title": "발음 연습",
+    "description": "일반 RGB 웹캠으로 자동 판정하지 않습니다. 안내에 따라 수행한 뒤 직접 완료로 기록하세요.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": false
+  },
+  {
+    "id": "cheek_pressure",
+    "title": "볼 안쪽 혀 누르기",
+    "description": "일반 RGB 웹캠으로 자동 판정하지 않습니다. 안내에 따라 수행한 뒤 직접 완료로 기록하세요.",
+    "detection_type": "MANUAL",
+    "rule": "MANUAL",
+    "hold_seconds": 2,
+    "repetitions": 3,
+    "auto_complete": false,
+    "enabled": false
+  }
+]

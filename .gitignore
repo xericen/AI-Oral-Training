@@ -4,3 +4,13 @@ dist/
 .env
 .env.*
 !.env.example
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.sqlite3*
+*.db
+core
+core.*
+backend/models/*.pt
+backend/models/*.task
