@@ -11,6 +11,7 @@ export class BrowserVision {
  this.worker.onerror=e=>{for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error(e.message||'이 브라우저에서 AI 모델을 실행할 수 없습니다.'))}this.pending.clear()};
  this.ready=this.request('init',{base:new URL(import.meta.env.BASE_URL,location.href).href},[],visionConfig.modelTimeoutMs).then(()=>undefined).catch(e=>{this.dispose();throw e});return this.ready;
  }
+ async initializeTongueModel(){await this.initialize();await this.request('initTongue',{base:new URL(import.meta.env.BASE_URL,location.href).href},[],visionConfig.modelTimeoutMs)}
  async analyze(video:HTMLVideoElement|ImageBitmap):Promise<VisionResult>{await this.initialize();const bitmap=await createImageBitmap(video);const message=await this.request('frame',{bitmap},[bitmap]);return message.result}
  dispose(){this.worker?.terminate();this.worker=null;this.ready=null;for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error('브라우저 분석기가 종료되었습니다.'))}this.pending.clear()}
 }

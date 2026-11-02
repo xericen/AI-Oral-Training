@@ -1,0 +1,2 @@
+# Developer-only ONNX conversion dependency, in addition to backend requirements.
+onnx==1.17.0

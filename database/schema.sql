@@ -1,4 +1,4 @@
--- Legacy SQLite schema only. No participant records.
+-- Optional FastAPI/SQLite schema only. No participant records.
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE calibration_profiles (
@@ -6,7 +6,13 @@ CREATE TABLE calibration_profiles (
 	session_id VARCHAR NOT NULL,
 	participant_code VARCHAR NOT NULL,
 	created_at VARCHAR NOT NULL,
-	"values" JSON NOT NULL, "neutral_jaw_open" FLOAT, "neutral_mouth_open_ratio" FLOAT, "neutral_mouth_pucker" FLOAT, "neutral_cheek_puff" FLOAT, "neutral_shoulder_angle" FLOAT, "neutral_body_alignment" FLOAT,
+	"values" JSON NOT NULL,
+	neutral_jaw_open FLOAT,
+	neutral_mouth_open_ratio FLOAT,
+	neutral_mouth_pucker FLOAT,
+	neutral_cheek_puff FLOAT,
+	neutral_shoulder_angle FLOAT,
+	neutral_body_alignment FLOAT,
 	PRIMARY KEY (id),
 	UNIQUE (session_id),
 	FOREIGN KEY(session_id) REFERENCES training_sessions (id)

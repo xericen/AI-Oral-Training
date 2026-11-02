@@ -1,7 +1,8 @@
 import * as ort from 'onnxruntime-web/wasm';
 import {FaceLandmarker,FilesetResolver} from '@mediapipe/tasks-vision';
 import {visionConfig} from './config';import type {VisionResult} from './features';
-let pose:ort.InferenceSession|null=null,face:FaceLandmarker|null=null,lastTime=0;
+import {TongueDirectionClassifier} from './tongue';
+let pose:ort.InferenceSession|null=null,face:FaceLandmarker|null=null,tongue:TongueDirectionClassifier|null=null,lastTime=0;
 const size=visionConfig.inputSize;
 import {decode} from './pose';
 async function init(base:string){
@@ -23,7 +24,8 @@ async function infer(bitmap:ImageBitmap):Promise<VisionResult>{
  const outputs=await pose.run({[pose.inputNames[0]]:new ort.Tensor('float32',tensor,[1,3,size,size])});const output=outputs[pose.outputNames[0]];
  const points=decode(output.data as Float32Array,output.dims,w,h,scale,px,py);
  lastTime=Math.max(lastTime+1,performance.now());
- const result=face.detectForVideo(bitmap,lastTime);
- return {pose:points,faces:result.faceLandmarks.map((pts,i)=>({landmarks:pts.map(p=>[p.x,p.y,p.z]),blendshapes:Object.fromEntries((result.faceBlendshapes[i]?.categories||[]).map(c=>[c.categoryName,c.score])),matrix:result.facialTransformationMatrixes[i]?.data?Array.from(result.facialTransformationMatrixes[i].data):null})),width:w,height:h,inference_ms:Math.round((performance.now()-start)*10)/10};
+ const result=face.detectForVideo(input,lastTime),faces=result.faceLandmarks.map((pts,i)=>({landmarks:pts.map(p=>[(p.x*size-px)/rw,(p.y*size-py)/rh,p.z]),blendshapes:Object.fromEntries((result.faceBlendshapes[i]?.categories||[]).map(c=>[c.categoryName,c.score])),matrix:result.facialTransformationMatrixes[i]?.data?Array.from(result.facialTransformationMatrixes[i].data):null}));
+ const tongueResult=tongue&&faces.length===1?await tongue.predict(bitmap,faces[0].landmarks,w,h):null;
+ return {pose:points,faces,width:w,height:h,inference_ms:Math.round((performance.now()-start)*10)/10,tongue:tongueResult};
 }
-self.onmessage=async(event:MessageEvent)=>{const {id,type,base,bitmap}=event.data;try{if(type==='init'){await init(base);self.postMessage({id,ready:true})}else if(type==='frame'){const result=await infer(bitmap);self.postMessage({id,result})}}catch(e){self.postMessage({id,error:(e as Error).message||'브라우저 AI 분석에 실패했습니다.'})}finally{bitmap?.close()}};
+self.onmessage=async(event:MessageEvent)=>{const {id,type,base,bitmap}=event.data;try{if(type==='init'){await init(base);self.postMessage({id,ready:true})}else if(type==='initTongue'){tongue=await TongueDirectionClassifier.create(base+'models/tongue-direction.onnx');self.postMessage({id,ready:true})}else if(type==='frame'){const result=await infer(bitmap);self.postMessage({id,result})}}catch(e){self.postMessage({id,error:(e as Error).message||'브라우저 AI 분석에 실패했습니다.'})}finally{bitmap?.close()}};

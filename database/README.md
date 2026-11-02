@@ -1,17 +1,19 @@
 # 훈련 기록 저장 구조
 
-## 현재 기본: 브라우저 IndexedDB
+## 현재 기본: IndexedDB + 로그인 동기화
 
-src/browser/records.ts가 oral-training-browser-v1 DB의 버전 1을 생성합니다. sessions object store의 keyPath는 id입니다. 데이터 형식은 src/types.ts의 TrainingSession 및 StepResult를 참고하세요. 훈련 결과·단계 결과·중립 보정값을 저장하며 다른 기기에 자동 동기화하지 않습니다. 브라우저 기록은 저장소에 포함하지 않습니다.
+`frontend/src/browser/records.ts`가 `oral-training-browser-v1` IndexedDB를 생성하고 `sessions` object store에 훈련 결과를 저장합니다. 데이터 형식은 `frontend/src/types.ts`의 `TrainingSession`과 `StepResult`를 따릅니다.
 
-## 이전 서버 방식: SQLite (선택)
+`frontend/src/browser/sync.ts`는 로그인 사용자의 세션·단계 결과를 WIZ의 `/wiz/api/page.capstone/training_records`와 동기화합니다. 서버 연결에 실패해도 로컬 기록은 유지하며, 카메라 영상·전체 얼굴 랜드마크·음성 원본은 로컬과 서버 어느 쪽에도 저장하지 않습니다.
 
-backend/app/db.py가 training_sessions, step_results, calibration_profiles 테이블을 생성합니다. 기본 DB는 backend/training.sqlite3이며 기존 데이터 파일은 포함하지 않습니다. ORAL_DATABASE_URL로 별도 경로를 지정할 수 있습니다. 현재 프론트엔드는 이 API에 기록을 저장하지 않습니다.
+## 선택형 FastAPI 서버: SQLite
 
-빈 DB를 직접 만들려면 저장소 루트에서:
+`backend/app/db.py`는 `training_sessions`, `step_results`, `calibration_profiles` 테이블을 생성합니다. 기본 DB는 `backend/training.sqlite3`이며 실제 DB 파일은 저장소에 포함하지 않습니다. `ORAL_DATABASE_URL`로 다른 SQLAlchemy 연결 문자열을 지정할 수 있습니다.
+
+빈 SQLite DB를 직접 만들려면 저장소 루트에서 실행합니다.
 
 ```bash
 sqlite3 backend/training.sqlite3 < database/schema.sql
 ```
 
-서버 시작 시에도 SQLAlchemy가 테이블을 자동 생성합니다. MySQL/WIZ 회원 DB나 접속 비밀번호는 포함하지 않습니다. 기존 서버 기록을 IndexedDB로 자동 이전하는 기능은 없습니다.
+FastAPI 서버 시작 시에도 SQLAlchemy가 동일 테이블을 자동 생성합니다. 현재 기본 React 앱은 이 FastAPI 저장 API를 호출하지 않으며, WIZ 로그인 기록과 레거시 SQLite 사이의 자동 이전 기능은 없습니다.

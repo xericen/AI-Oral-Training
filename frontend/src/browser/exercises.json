@@ -2,7 +2,7 @@
   {
     "id": "posture",
     "title": "준비자세 확인",
-    "description": "얼굴·양쪽 어깨·골반이 보이도록 카메라를 정면으로 바라보세요.",
+    "description": "안내 이미지처럼 몸의 힘을 빼고 편안한 정면 자세를 취하세요. 얼굴과 양쪽 어깨가 화면 안에 보이면 2초간 유지합니다.",
     "detection_type": "POSE_FACE",
     "rule": "POSTURE",
     "hold_seconds": 2,

@@ -276,6 +276,6 @@ async def training_socket(ws: WebSocket, sid: str):
             # A storage failure must not permanently reserve the single-user slot.
             connected = None
 
-dist = ROOT.parent/"dist"
+dist = ROOT.parent/"frontend"/"dist"
 if dist.is_dir():
     app.mount("/",StaticFiles(directory=str(dist),html=True),name="frontend")
