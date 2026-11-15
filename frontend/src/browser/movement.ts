@@ -1,6 +1,13 @@
-import type {Exercise} from '../types';import type {Metrics} from './features';import {rules} from './config';import {posture,mouth} from './engine';
+import type {Exercise} from '../types';import type {Metrics} from './features';import {rules} from './config';import {posture,mouth,neutralExpression} from './engine';
 export interface Thresholds {turn:number;tilt:number;down:number;body:number;shoulder:number;cheek:number;yawSign:number;rollSign:number}
-export const defaults:Thresholds={turn:15,tilt:12,down:12,body:10,shoulder:.08,cheek:.025,yawSign:-1,rollSign:-1};
+export const defaults:Thresholds={turn:15,tilt:12,down:12,body:10,shoulder:.08,cheek:.025,yawSign:1,rollSign:-1};
+export const thresholdDirectionVersion='2';
+type ThresholdStorage=Pick<Storage,'getItem'|'setItem'>;
+export function loadThresholds(storage:ThresholdStorage|undefined=typeof localStorage==='undefined'?undefined:localStorage):Thresholds{
+ if(!storage)return {...defaults};
+ try{const value=JSON.parse(storage.getItem('oral-thresholds')||'null');if(value&&Object.keys(defaults).every(key=>typeof value[key]==='number'&&Number.isFinite(value[key]))){const next={...defaults,...value};if(storage.getItem('oral-thresholds-direction-version')!==thresholdDirectionVersion){next.yawSign=defaults.yawSign;storage.setItem('oral-thresholds',JSON.stringify(next));storage.setItem('oral-thresholds-direction-version',thresholdDirectionVersion)}return next}}catch{}
+ return {...defaults};
+}
 export function evaluate(ex:Exercise,m:Metrics,b:Metrics,t:Thresholds):Record<string,boolean|null>{
  const delta=(key:string)=>m[key]==null||b[key]==null?null:m[key]!-b[key]!;
  const test=(v:number|null,p:(x:number)=>boolean)=>v===null?null:p(v);
@@ -54,6 +61,8 @@ export function released(ex:Exercise,m:Metrics,b:Metrics,t:Thresholds){
  if(ex.rule.startsWith('HEAD'))return ['yaw','pitch','roll'].every(k=>m[k]!=null&&b[k]!=null&&Math.abs(m[k]!-b[k]!)<8);
  if(ex.rule.startsWith('BODY'))return m.body_lean!=null&&b.body_lean!=null&&Math.abs(m.body_lean-b.body_lean)<5;
  if(ex.rule.startsWith('SHOULDER'))return m.shoulder_height!=null&&b.shoulder_height!=null&&Math.abs(m.shoulder_height-b.shoulder_height)<t.shoulder*.5;
+ if(ex.rule==='MOUTH_OPEN'){const jaw=m.jawOpen==null||b.jawOpen==null?null:Math.abs(m.jawOpen-b.jawOpen),ratio=m.mouth_open_ratio==null||b.mouth_open_ratio==null?null:Math.abs(m.mouth_open_ratio-b.mouth_open_ratio);return neutralExpression(m)===true&&jaw!==null&&ratio!==null&&jaw<rules.jawDelta*rules.releaseFraction&&ratio<rules.mouthRatioDelta*rules.releaseFraction}
+ if(ex.rule==='PUCKER'){const pucker=m.mouthPucker==null||b.mouthPucker==null?null:Math.abs(m.mouthPucker-b.mouthPucker),width=m.mouth_width_ratio==null||b.mouth_width_ratio==null?null:Math.abs(m.mouth_width_ratio-b.mouth_width_ratio);return neutralExpression(m)===true&&pucker!==null&&width!==null&&pucker<rules.puckerDelta*rules.releaseFraction&&width<rules.widthDelta}
  return m.jawOpen!=null&&b.jawOpen!=null&&m.mouthPucker!=null&&b.mouthPucker!=null&&Math.abs(m.jawOpen-b.jawOpen)<rules.jawDelta*rules.releaseFraction&&Math.abs(m.mouthPucker-b.mouthPucker)<rules.puckerDelta*rules.releaseFraction&&
  (m.mouth_width_ratio==null||b.mouth_width_ratio==null||Math.abs(m.mouth_width_ratio-b.mouth_width_ratio)<.02);
 }

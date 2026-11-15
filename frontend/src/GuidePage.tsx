@@ -3,7 +3,7 @@ import {Link} from 'react-router-dom';
 import {ChevronLeft,ChevronRight,Camera,BookOpen,Check,NotebookTabs,RefreshCw} from 'lucide-react';
 const slides=[
  {title:'그림으로 배우는 훈련 방법',short:'시작 · 목차',lead:'카메라를 켜고, 그림을 따라 해 보세요.',hint:'아래 목차를 누르면 원하는 설명으로 바로 이동합니다.'},
- {title:'카메라를 켜 주세요',short:'카메라 켜기',lead:'훈련하기 → Webcam → 카메라 허용',hint:'밝은 곳에서 혼자 앉아 주세요. 처음에는 AI 준비가 끝날 때까지 기다려 주세요.'},
+ {title:'카메라를 켜 주세요',short:'카메라 켜기',lead:'훈련하기 → Webcam → 카메라 허용',hint:'밝은 곳에서 혼자 앉아 주세요. 홈을 보는 동안 AI가 미리 준비됩니다.'},
  {title:'정면을 보고 편안하게 앉으세요',short:'준비자세',lead:'얼굴과 양쪽 어깨가 보이면 충분해요.',hint:'상반신이 화면 가운데 오도록 앉고 입을 편안히 다문 채 2초간 기다리세요.'},
  {title:'입을 벌리고 2초간 유지하세요',short:'입 벌리기',lead:'벌리기 → 2초 유지 → 다물고 쉬기',hint:'횟수가 올라가면 입을 다물어 주세요. 같은 방법으로 총 3회 반복합니다.'},
  {title:'입술을 모으고 2초간 유지하세요',short:'입술 오므리기',lead:'오므리기 → 2초 유지 → 힘 풀기',hint:'입술을 앞으로 모아 주세요. 횟수가 올라가면 힘을 풀고, 총 3회 반복합니다.'},

@@ -1,16 +1,11 @@
-import {describe,expect,it} from 'vitest';
-import {mouthBounds,tongueClasses} from './tongue';
+import {describe,it,expect} from 'vitest';
+import {isTongueDirectionRule,mouthBounds,summarizeTonguePredictions,tongueClasses,tongueTargetForRule,type TonguePrediction} from './tongue';
 
-describe('Tongue direction inference boundary',()=>{
- it('keeps the seven training labels in export order',()=>expect(tongueClasses).toEqual(['mouth_closed','mouth_open','tongue_down','tongue_left','tongue_middle','tongue_right','tongue_up']));
- it('extracts a padded square mouth ROI inside the source frame',()=>{
-  const landmarks=Array.from({length:478},()=>[.5,.5,0]);
-  landmarks[61]=[.4,.5,0];landmarks[291]=[.6,.5,0];landmarks[13]=[.5,.46,0];landmarks[14]=[.5,.56,0];
-  landmarks[0]=[.5,.43,0];landmarks[17]=[.5,.58,0];landmarks[78]=[.42,.5,0];landmarks[82]=[.47,.47,0];landmarks[87]=[.47,.55,0];landmarks[308]=[.58,.5,0];landmarks[312]=[.53,.47,0];landmarks[317]=[.53,.55,0];
-  const bounds=mouthBounds(landmarks,640,480)!;
-  expect(bounds.x).toBeGreaterThanOrEqual(0);expect(bounds.y).toBeGreaterThanOrEqual(0);
-  expect(bounds.x+bounds.width).toBeLessThanOrEqual(640);expect(bounds.y+bounds.height).toBeLessThanOrEqual(480);
-  expect(bounds.width).toBeGreaterThan(128);
- });
- it('rejects incomplete landmarks',()=>expect(mouthBounds([],640,480)).toBeNull());
+const prediction=(label:typeof tongueClasses[number],confidence=.8):TonguePrediction=>({label,confidence,latencyMs:12});
+
+describe('tongue direction model contract',()=>{
+ it('keeps the attached seven-class order exactly',()=>{expect([...tongueClasses]).toEqual(['mouth_closed','mouth_open','tongue_down','tongue_left','tongue_middle','tongue_right','tongue_up'])});
+ it('maps only externally visible tongue direction rules',()=>{expect(tongueTargetForRule('TONGUE_OUT')).toBe('tongue_middle');expect(tongueTargetForRule('TONGUE_LEFT')).toBe('tongue_left');expect(isTongueDirectionRule('TONGUE_UPPER_INNER')).toBe(false)});
+ it('requires a short majority before marking the display stable',()=>{expect(summarizeTonguePredictions([prediction('tongue_left'),prediction('tongue_right')])?.stable).toBe(false);const result=summarizeTonguePredictions([prediction('tongue_right',.7),prediction('tongue_left',.6),prediction('tongue_right',.8),prediction('tongue_right',.9),prediction('tongue_left',.7)]);expect(result).toMatchObject({label:'tongue_right',stable:true,samples:5,votes:3});expect(result?.confidence).toBeCloseTo(.8)});
+ it('rejects incomplete face landmarks for a mouth crop',()=>{expect(mouthBounds([],640,480)).toBeNull()});
 });

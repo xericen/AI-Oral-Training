@@ -1,0 +1,150 @@
+{
+  "dataset_doi": "10.5683/SP2/5T2RD9",
+  "purpose": "visual action classification, not medical efficacy",
+  "classes": [
+    "mouth_closed",
+    "mouth_open",
+    "tongue_down",
+    "tongue_left",
+    "tongue_middle",
+    "tongue_right",
+    "tongue_up"
+  ],
+  "seed": 42,
+  "test_accuracy": 0.667524115755627,
+  "test_macro_f1": 0.6582072809602865,
+  "classification_report": {
+    "mouth_closed": {
+      "precision": 0.5354260089686098,
+      "recall": 0.944620253164557,
+      "f1-score": 0.683457355466514,
+      "support": 632.0
+    },
+    "mouth_open": {
+      "precision": 0.6701821668264621,
+      "recall": 0.9420485175202157,
+      "f1-score": 0.7831932773109244,
+      "support": 742.0
+    },
+    "tongue_down": {
+      "precision": 0.9470899470899471,
+      "recall": 0.5628930817610063,
+      "f1-score": 0.7061143984220908,
+      "support": 636.0
+    },
+    "tongue_left": {
+      "precision": 0.7313829787234043,
+      "recall": 0.4552980132450331,
+      "f1-score": 0.5612244897959183,
+      "support": 604.0
+    },
+    "tongue_middle": {
+      "precision": 0.532235939643347,
+      "recall": 0.6006191950464397,
+      "f1-score": 0.5643636363636364,
+      "support": 646.0
+    },
+    "tongue_right": {
+      "precision": 0.6810176125244618,
+      "recall": 0.6,
+      "f1-score": 0.6379468377635197,
+      "support": 580.0
+    },
+    "tongue_up": {
+      "precision": 0.8752436647173489,
+      "recall": 0.5442424242424242,
+      "f1-score": 0.6711509715994021,
+      "support": 825.0
+    },
+    "accuracy": 0.667524115755627,
+    "macro avg": {
+      "precision": 0.7103683312133687,
+      "recall": 0.6642459264256679,
+      "f1-score": 0.6582072809602865,
+      "support": 4665.0
+    },
+    "weighted avg": {
+      "precision": 0.7161113797678761,
+      "recall": 0.667524115755627,
+      "f1-score": 0.6622573282349377,
+      "support": 4665.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      597,
+      3,
+      1,
+      4,
+      0,
+      27,
+      0
+    ],
+    [
+      23,
+      699,
+      0,
+      3,
+      0,
+      15,
+      2
+    ],
+    [
+      13,
+      17,
+      358,
+      16,
+      211,
+      10,
+      11
+    ],
+    [
+      107,
+      65,
+      9,
+      275,
+      80,
+      64,
+      4
+    ],
+    [
+      20,
+      182,
+      5,
+      7,
+      388,
+      8,
+      36
+    ],
+    [
+      93,
+      58,
+      5,
+      35,
+      30,
+      348,
+      11
+    ],
+    [
+      262,
+      19,
+      0,
+      36,
+      20,
+      39,
+      449
+    ]
+  ],
+  "split_images": {
+    "train": 20762,
+    "validation": 4804,
+    "test": 4665
+  },
+  "split_participants": {
+    "test": 3,
+    "train": 11,
+    "validation": 3
+  },
+  "best_epoch": 1,
+  "onnx_max_abs_logit_diff": 2.6941299438476562e-05
+}

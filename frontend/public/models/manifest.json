@@ -1,8 +1,16 @@
 {
-  "source": "Ultralytics YOLO11n-pose and MediaPipe FaceLandmarker float16 v1",
+  "source": "Ultralytics YOLO11n-pose, MediaPipe FaceLandmarker and Colab-trained tongue MobileNetV3-Small",
   "input_size": 320,
+  "tongue_model": {
+    "input": "RGB 224x224 NCHW, ImageNet mean/std normalization",
+    "classes": ["mouth_closed", "mouth_open", "tongue_down", "tongue_left", "tongue_middle", "tongue_right", "tongue_up"],
+    "test_accuracy": 0.667524115755627,
+    "macro_f1": 0.6582072809602865,
+    "automatic_completion": false
+  },
   "sha256": {
     "face_landmarker.task": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
-    "yolo11n-pose-320.onnx": "21c1c8132020a73e93fa63e48e187b471c6c6a71d453f8af3204b4008cfe7865"
+    "yolo11n-pose-320.onnx": "21c1c8132020a73e93fa63e48e187b471c6c6a71d453f8af3204b4008cfe7865",
+    "tongue-direction.onnx": "d49da429f41c5cccee681a00cee3443bb1e51bbd842f06ea12dd6eaccc5966cd"
   }
 }

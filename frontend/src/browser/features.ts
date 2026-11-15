@@ -1,7 +1,7 @@
 import {rules} from './config';
 export interface Face {landmarks:number[][];blendshapes:Record<string,number>;matrix:number[]|null}
 export interface TongueResult {label:string;confidence:number;latencyMs:number}
-export interface VisionResult {pose:number[][][];faces:Face[];width:number;height:number;inference_ms:number;tongue?:TongueResult|null}
+export interface VisionResult {pose:number[][][];faces:Face[];width:number;height:number;inference_ms:number;tongue?:TongueResult|null;tongue_error?:string|null}
 export type Metrics=Record<string,number|null>;
 export function tilt(a:number[],b:number[]){return Math.atan2(Math.abs(b[1]-a[1]),Math.abs(b[0]-a[0]))*180/Math.PI}
 export function alignment(shoulder:number[],hip:number[]){return Math.atan2(Math.abs(shoulder[0]-hip[0]),Math.abs(shoulder[1]-hip[1]))*180/Math.PI}

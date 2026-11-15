@@ -3,7 +3,7 @@ import {courses} from './courses';
 import {configureExercises} from './capabilities';
 
 const speech=courses.find(course=>course.id==='D')!.exercises;
-const mouth=courses.find(course=>course.id==='B')!.exercises;
+const mouth=courses.find(course=>course.id==='C')!.exercises;
 
 describe('Browser capability fallbacks',()=>{
  it('uses timer guidance when speech recognition is unavailable',()=>{
