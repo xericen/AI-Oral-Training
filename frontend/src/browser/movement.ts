@@ -27,9 +27,17 @@ export function evaluate(ex:Exercise,m:Metrics,b:Metrics,t:Thresholds):Record<st
  if(rule==='HEAD_LEFT')condition=test(yaw,v=>v<=-t.turn)&&near(rel.pitch,15)&&near(rel.roll,15);
  if(rule==='HEAD_TILT_RIGHT')condition=test(roll,v=>v>=t.tilt)&&near(rel.yaw,15);
  if(rule==='HEAD_TILT_LEFT')condition=test(roll,v=>v<=-t.tilt)&&near(rel.yaw,15);
- if(rule==='HEAD_DOWN')condition=test(rel.pitch,v=>v>=t.down)&&near(rel.yaw,15);
- if(rule==='HEAD_DOWN_RIGHT')condition=test(rel.pitch,v=>v>=t.down*.65)&&test(yaw,v=>v>=t.turn*.65);
- if(rule==='HEAD_DOWN_LEFT')condition=test(rel.pitch,v=>v>=t.down*.65)&&test(yaw,v=>v<=-t.turn*.65);
+ // A modest nose projection change corroborates negative-pitch devices.
+ // Requiring .055 here excluded small, otherwise clear downward rotations.
+ const down=(factor=1)=>{
+ const nod=delta('head_nod_ratio'),limit=Math.max(8,t.down*.8)*factor;
+ const angleDown=test(rel.pitch,v=>v>=limit)&&!(nod!==null&&nod<-.025);
+ const landmarkDown=test(nod,v=>v>=.025)&&test(rel.pitch,v=>Math.abs(v)>=limit*.65);
+ return angleDown||landmarkDown;
+ };
+ if(rule==='HEAD_DOWN')condition=down()&&near(rel.yaw,20)&&near(rel.roll,20);
+ if(rule==='HEAD_DOWN_RIGHT')condition=down(.8)&&test(yaw,v=>v>=t.turn*.65)&&near(rel.roll,20);
+ if(rule==='HEAD_DOWN_LEFT')condition=down(.8)&&test(yaw,v=>v<=-t.turn*.65)&&near(rel.roll,20);
  return {...basic,head_target:condition};
  }
  if(rule.startsWith('SHOULDER')||rule.startsWith('BODY')){

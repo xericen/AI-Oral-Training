@@ -7,5 +7,5 @@ export function decode(data:Float32Array,dims:readonly number[],w:number,h:numbe
  const x=at(0),y=at(1),bw=at(2),bh=at(3);
  candidates.push({score,box:[x-bw/2,y-bh/2,x+bw/2,y+bh/2],points:Array.from({length:17},(_,j)=>[(at(5+j*3)-padX)/scale/w,(at(6+j*3)-padY)/scale/h,at(7+j*3)])})}
  candidates.sort((a,b)=>b.score-a.score);const kept:typeof candidates=[];
- for(const p of candidates){if(!kept.some(k=>iou(k.box,p.box)>visionConfig.nmsIou))kept.push(p);if(kept.length===3)break}return kept.map(p=>p.points);
+ for(const p of candidates){if(!kept.some(k=>iou(k.box,p.box)>visionConfig.nmsIou))kept.push(p)}return kept.map(p=>p.points);
 }

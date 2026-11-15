@@ -22,3 +22,16 @@ describe('Browser step state machine',()=>{
  it('keeps hold progress through one brief noisy frame but resets after sustained loss',()=>{const x=engine();x.calibrate();for(let i=0;i<5;i++){x.e.update(metric());x.tick()}const before=x.e.elapsed;expect(before).toBeGreaterThan(0);x.e.update(metric({face_count:0}));x.tick(.2);expect(x.e.elapsed).toBe(before);x.e.update(metric());x.tick();expect(x.e.elapsed).toBe(before);x.e.update(metric({face_count:0}));x.tick(.5);x.e.update(metric({face_count:0}));expect(x.e.elapsed).toBe(0)});
  it('calibration timeout keeps retrying without a model error',()=>{const x=engine();x.e.resume();x.tick(21);x.e.update(metric({face_count:0}));expect(x.e.state).toBe('CALIBRATING');expect(x.e.message).toContain('자동 측정을 계속')});
 });
+
+describe('Landmark nod geometry',()=>{
+ it('measures nose movement relative to the eye/chin axis across scale and rotation',()=>{
+ const points=Array.from({length:478},()=>[.5,.4,0]);points[234]=[.3,.5,0];points[454]=[.7,.5,0];points[33]=[.4,.3,0];points[263]=[.6,.3,0];points[152]=[.5,.7,0];points[1]=[.5,.5,0];
+ const read=(landmarks:number[][],width=640,height=480)=>extract({pose:[],faces:[{landmarks,blendshapes:{},matrix:null}],width,height,inference_ms:0}).head_nod_ratio;
+ expect(read(points)).toBeCloseTo(.5);expect(read(points,1280,960)).toBeCloseTo(.5);
+ const tilted=points.map(([x,y,z])=>[.5+(x-.5)*Math.cos(.2)-(y-.5)*.75*Math.sin(.2),.5+(x-.5)/.75*Math.sin(.2)+(y-.5)*Math.cos(.2),z]);expect(read(tilted)).toBeCloseTo(.5);
+ points[1]=[.5,.54,0];expect(read(points)).toBeCloseTo(.6);
+ });
+ it('does not manufacture a nod when eye and chin landmarks collapse',()=>{
+ const landmarks=Array.from({length:478},()=>[.5,.4,0]);expect(extract({pose:[],faces:[{landmarks,blendshapes:{},matrix:null}],width:640,height:480,inference_ms:0}).head_nod_ratio).toBeNull();
+ });
+});

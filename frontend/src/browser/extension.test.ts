@@ -10,7 +10,7 @@ describe('Extended course contracts',()=>{
  it('uses four generated woman sheets at their source sizes',()=>{expect(guideSheets).toEqual({body:{sheet:'./guides/generated-exercise-poses-v1.png',width:1402,height:1122,columns:4,rows:4},tongue:{sheet:'./guides/generated-tongue-poses-v1.png',width:1402,height:1122,columns:4,rows:4},chewing:{sheet:'./guides/generated-chewing-poses-v1.png',width:1448,height:1086,columns:4,rows:3},speech:{sheet:'./guides/generated-speech-poses-v1.png',width:1536,height:1024,columns:3,rows:2}});expect(new Set(Object.values(guideCrops).map(item=>item.sheet))).toHaveLength(4)});
  it('keeps every extracted crop inside its source page',()=>{for(const item of Object.values(guideCrops)){const [x,y,width,height]=item.viewBox.split(' ').map(Number);expect(x).toBeGreaterThanOrEqual(0);expect(y).toBeGreaterThanOrEqual(0);expect(x+width).toBeLessThanOrEqual(item.width);expect(y+height).toBeLessThanOrEqual(item.height)}});
  it('uses the original woman pose sheet for every warm-up action',()=>{const warmup=courses.find(course=>course.id==='A')!;for(const exercise of warmup.exercises.slice(1))expect(guideCropFor(exercise.id)?.sheet).toBe(guideSheets.body.sheet)});
- it('never pretends tongue or breathing are AI detections',()=>{for(const e of courses.find(c=>c.id==='B')!.exercises.filter(e=>e.category==='혀'&&e.rule!=='MOUTH_OPEN'))expect(e.detection_type).toBe('MANUAL');expect(get('BREATH_IN').detection_type).toBe('MANUAL');expect(get('BREATH_OUT').detection_type).toBe('MANUAL');expect(get('CHEEK_IN').detection_type).toBe('MANUAL')});
+ it('never pretends tongue or breath sound confirmation are AI motion detections',()=>{for(const e of courses.find(c=>c.id==='B')!.exercises.filter(e=>e.category==='혀'&&e.rule!=='MOUTH_OPEN'))expect(e.detection_type).toBe('MANUAL');expect(get('BREATH_IN').detection_type).toBe('BREATH_AUDIO');expect(get('BREATH_OUT').detection_type).toBe('BREATH_AUDIO');expect(isAI('BREATH_AUDIO')).toBe(false);expect(courses[3].exercises.filter(e=>e.rule.startsWith('BREATH')).every(e=>e.detection_type==='MANUAL')).toBe(true);expect(get('CHEEK_IN').detection_type).toBe('MANUAL')});
 });
 describe('Relative calibrated motions',()=>{
  it('migrates the previous reversed yaw setting to the corrected user direction',()=>{const data=new Map<string,string>([['oral-thresholds',JSON.stringify({...defaults,yawSign:-1})]]),storage={getItem:(key:string)=>data.get(key)??null,setItem:(key:string,value:string)=>{data.set(key,value)}};expect(loadThresholds(storage).yawSign).toBe(1);expect(data.get('oral-thresholds-direction-version')).toBe('2')});
@@ -26,10 +26,57 @@ describe('Relative calibrated motions',()=>{
 describe('Guided and AI state boundaries',()=>{
  it('timer completes by time only and is excluded from AI',()=>{const x=init('CHEEK_PUFF');for(let i=0;i<18;i++)x.step();expect(x.e.state).toBe('COMPLETED');expect(isAI(x.e.exercise.detection_type)).toBe(false);expect(x.e.criteria.hold_complete).toBeUndefined()});
  it('lost face resets timer instead of completing unseen',()=>{const x=init('CHEEK_PUFF');for(let i=0;i<6;i++)x.step();x.step(good({face_count:0}));expect(x.e.elapsed).toBe(0);expect(x.e.counts[0]).toBe(0)});
- it('does not complete breathing while the user stays still',()=>{const x=init('BREATH_IN');for(let i=0;i<24;i++)x.step();expect(x.e.counts[0]).toBe(0);expect(x.e.state).toBe('ACTIVE');x.e.manual();expect(x.e.state).toBe('COMPLETED')});
+ it('does not complete breathing while the user stays still',()=>{const x=init('BREATH_IN');for(let i=0;i<24;i++)x.step();expect(x.e.counts[0]).toBe(0);expect(x.e.state).toBe('ACTIVE');expect(()=>x.e.manual()).toThrow();x.e.breath(x.e.exercise.id,.5);expect(x.e.state).toBe('HOLDING');for(let i=0;i<14;i++)x.step();expect(x.e.state).toBe('COMPLETED')});
  it('manual needs calibration and never turns into AI',()=>{const x=init('CHEEK_IN');x.step();x.e.manual();expect(x.e.counts[0]).toBe(1);expect(isAI(x.e.exercise.detection_type)).toBe(false)});
  it('timeout gives retry feedback without success',()=>{const x=init('HEAD_RIGHT');x.jump(61);x.step();expect(x.e.counts[0]).toBe(0);expect(x.e.message).toContain('제한시간')});
  it('skip does not fabricate completed counts and previous works',()=>{let t=0;const e=new StepEngine(courses[0].exercises,()=>t);e.baseline=good();e.resume();e.skip();expect(e.index).toBe(1);expect(e.skipped.has(0)).toBe(true);expect(e.counts[0]).toBe(0);e.previous();expect(e.index).toBe(0)});
  it('audio only matches exact text on a fresh visible face',()=>{const x=init('SPEECH','AUDIO');x.step();x.e.audio('다른 말');expect(x.e.counts[0]).toBe(0);x.e.audio('파');expect(x.e.counts[0]).toBe(1);x.jump(3);x.e.audio('파');expect(x.e.counts[0]).toBe(1)});
  it('separates timer and AI summaries for the same movement',()=>{const s={step_id:'x',step_name:'test',target_count:3,success_count:3,retry_count:0,duration_seconds:3,completion_status:'COMPLETED',started_at:'2026-10-28'};const summary=summarize([{id:'x',participant_code:'x',started_at:'2026-10-28',ended_at:null,status:'completed',total_duration_seconds:3,completed_steps:2,total_steps:2,steps:[{...s,detection_mode:'TIMER'},{...s,detection_mode:'FACE'}]}]);expect(summary).toHaveLength(2);expect(summary.filter(s=>isAI(s.mode))).toHaveLength(1)});
+});
+
+describe('Head nod fallback and breath event boundaries',()=>{
+ it('accepts a corroborated downward nod with negative pitch but rejects looking up',()=>{
+ const b=good({pitch:4,head_nod_ratio:.4});
+ expect(evaluate(get('HEAD_DOWN'),good({pitch:-10,head_nod_ratio:.49}),b,defaults).head_target).toBe(true);
+ expect(evaluate(get('HEAD_DOWN'),good({pitch:-10,head_nod_ratio:.32}),b,defaults).head_target).toBe(false);
+ expect(evaluate(get('HEAD_DOWN'),good({pitch:18,head_nod_ratio:.32}),b,defaults).head_target).toBe(false);
+ expect(evaluate(get('HEAD_DOWN'),good({pitch:null,head_nod_ratio:.49}),b,defaults).head_target).not.toBe(true);
+ expect(evaluate(get('HEAD_DOWN'),good({pitch:-10,head_nod_ratio:.49,yaw:30}),b,defaults).head_target).toBe(false);
+ });
+ it('rejects stale events, wrong steps, pause, short sounds, missing face and duplicate completions',()=>{
+ const x=init('BREATH_OUT');x.step();
+ for(const d of [.2,NaN,Infinity,7])x.e.breath(x.e.exercise.id,d);
+ x.e.breath('breathe_in',1);expect(x.e.counts[0]).toBe(0);
+ x.jump(1);x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);
+ x.step(good({face_count:0}));x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);
+ x.step();x.e.pause();x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);
+ x.e.resume();x.step();x.e.breath(x.e.exercise.id,1);x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);for(let i=0;i<22;i++)x.step();expect(x.e.counts[0]).toBe(1);
+ });
+ it('does not accept breath events before calibration or in unrelated manual steps',()=>{
+ const e=new StepEngine([get('BREATH_IN')]);e.resume();e.breath(e.exercise.id,1);expect(e.counts[0]).toBe(0);
+ const x=init('CHEEK_IN');x.step();x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);
+ });
+});
+
+describe('Breath timing, timeout and nod regression',()=>{
+ it.each(['BREATH_IN','BREATH_OUT','HEAD_DOWN','CHEEK_PUFF','CHEEK_IN'])('exposes timeout and skip for %s without a success',rule=>{
+ const x=init(rule);x.step();x.jump(61);x.step();expect(x.e.snapshot().progress.timed_out).toBe(true);expect(x.e.counts[0]).toBe(0);
+ x.e.breath(x.e.exercise.id,1);expect(x.e.counts[0]).toBe(0);
+ x.e.skip();expect(x.e.skipped.has(0)).toBe(true);expect(x.e.state).toBe('SKIPPED');
+ });
+ it('restarts timeout on retry and clears an interrupted breath countdown',()=>{
+ const x=init('BREATH_IN');x.step();x.e.breath(x.e.exercise.id,.6);x.step();x.step();expect(x.e.elapsed).toBeGreaterThan(0);
+ x.step(good({face_count:0}));expect(x.e.elapsed).toBe(0);x.step();expect(x.e.criteria.breath_sound).toBe(false);
+ x.jump(61);x.step();x.e.resume();x.step();expect(x.e.snapshot().progress.timed_out).toBe(false);expect(x.e.state).toBe('ACTIVE');
+ });
+ it('does not finish by time alone or extend a countdown with duplicate sound events',()=>{
+ const x=init('BREATH_IN');for(let i=0;i<20;i++)x.step();expect(x.e.counts[0]).toBe(0);
+ x.e.breath(x.e.exercise.id,.5);x.step();x.step();const elapsed=x.e.elapsed;x.e.breath(x.e.exercise.id,.5);expect(x.e.elapsed).toBe(elapsed);
+ for(let i=0;i<14;i++)x.step();expect(x.e.counts[0]).toBe(1);
+ });
+ it.each([['HEAD_DOWN',0],['HEAD_DOWN_RIGHT',15],['HEAD_DOWN_LEFT',-15]])('accepts smaller corroborated downward motion for %s', (rule,yaw)=>{
+ const baseline=good({head_nod_ratio:.4});
+ expect(evaluate(get(String(rule)),good({pitch:-12,head_nod_ratio:.43,yaw:Number(yaw)}),baseline,defaults).head_target).toBe(true);
+ expect(evaluate(get(String(rule)),good({pitch:-12,head_nod_ratio:.37,yaw:Number(yaw)}),baseline,defaults).head_target).toBe(false);
+ });
 });

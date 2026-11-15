@@ -6,8 +6,8 @@ const neutral=(id:string)=>ex(id,'가운데 제자리','HEAD_CENTER','FACE','얼
 const posture={...legacy[0],detection_type:'POSE',category:'준비',timeout:60};
 
 const breath=[
- manual('breathe_in','코로 크게 들이마시기','BREATH_IN','코로 숨을 크게 들이마신 뒤 완료를 눌러 주세요.',3),
- manual('breathe_out','입으로 천천히 내쉬기','BREATH_OUT','입으로 천천히 숨을 내쉰 뒤 완료를 눌러 주세요.',5)
+ ex('breathe_in','코로 크게 들이마시기','BREATH_IN','BREATH_AUDIO','주변 소음 측정 후 코로 크게 들이마시세요. 숨소리 감지 후 안내 시간에 맞춰 호흡을 이어가세요.',3),
+ ex('breathe_out','입으로 천천히 내쉬기','BREATH_OUT','BREATH_AUDIO','입으로 후— 하고 천천히 내쉬세요. 숨소리 감지 후 안내 시간에 맞춰 호흡을 이어가세요.',5)
 ];
 const neck:Exercise[]=[
  ex('neck_front','앞을 보기','HEAD_CENTER','FACE','카메라 정면을 편하게 바라보세요.'),
@@ -79,5 +79,5 @@ export const courses:Course[]=[
  {id:'C',title:'씹기·입술 운동',description:'볼, 입술과 턱의 힘 기르기',exercises:[posture,...chewing]},
  {id:'D',title:'삼키기·말하기 운동',description:'삼키기 순서와 파·타·카·라 발음',exercises:[posture,...swallowSpeech]}
 ];
-export const modeLabel=(mode:string)=>({POSE:'자세 AI · 미검증 기준',POSE_FACE:'자세 AI',FACE:'얼굴 AI · 미검증 기준',CUSTOM_MODEL:'추가 모델 필요',TIMER:'시간 안내 · AI 판정 아님',MANUAL:'직접 확인 · AI 판정 아님',AUDIO:'음성 텍스트 · 실험적'}[mode]||mode);
+export const modeLabel=(mode:string)=>({POSE:'자세 AI · 미검증 기준',POSE_FACE:'자세 AI',FACE:'얼굴 AI · 미검증 기준',CUSTOM_MODEL:'추가 모델 필요',TIMER:'시간 안내 · AI 판정 아님',MANUAL:'직접 확인 · AI 판정 아님',BREATH_AUDIO:'숨소리 감지 · 실험적',AUDIO:'음성 텍스트 · 실험적'}[mode]||mode);
 export const isAI=(mode:string)=>['POSE','POSE_FACE','FACE','CUSTOM_MODEL'].includes(mode);

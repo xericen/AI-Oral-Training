@@ -1,3 +1,4 @@
+import {useBreath} from './useBreath';
 import ModelStatusPanel from './ModelStatusPanel';
 import HoldProgress from './HoldProgress';
 import TongueStatusCard from './TongueStatusCard';
@@ -32,12 +33,13 @@ export default function TrainingPage({calibrationOnly=false}:{calibrationOnly?:b
  useEffect(()=>{const fn=()=>setFullscreen(document.fullscreenElement===cameraFrame.current);document.addEventListener('fullscreenchange',fn);return()=>document.removeEventListener('fullscreenchange',fn)},[]);
  const a=training.analysis,idx=Math.max(0,exercises.findIndex(e=>e.id===a?.step_id)),ex=exercises[idx],guidePose=guideCropFor(ex.id),complete=a?.step_state==='COMPLETED',last=idx===exercises.length-1;
  useEffect(()=>{const list=stepList.current,current=list?.children[idx] as HTMLElement|undefined;if(!list||!current)return;list.scrollTo({top:Math.max(0,current.offsetTop-list.offsetTop),left:Math.max(0,current.offsetLeft-list.offsetLeft),behavior:'smooth'})},[idx]);
- const speech=useSpeech(training.audio,audioMode&&training.running,ex.id);
+ const speech=useSpeech(training.audio,audioMode&&training.running&&ex.detection_type==='AUDIO',ex.id);
+ const breath=useBreath(training.breath,ex.detection_type==='BREATH_AUDIO'&&camera.active&&training.running&&!!a?.progress.calibrated&&!complete&&!a?.progress.timed_out&&!a?.criteria.breath_sound,ex.id,ex.rule);
  useEffect(()=>{
  if(wanted&&camera.active&&models?.inference_available&&!training.running&&!training.error&&!training.preparing&&!finished&&!saving.current)void training.start();
  },[wanted,camera.active,models?.inference_available,training.running,training.error,training.preparing,finished,training.start]);
- useEffect(()=>{if(!complete||!training.running||finished)return;const t=setTimeout(()=>{if(last){if(!saving.current)void save(true)}else training.control('next')},1200);return()=>clearTimeout(t)},[complete,last,training.running,finished,training.control,idx]);
- async function save(completed:boolean){if(saving.current)return;saving.current=true;speech.stop();const row=await training.finish(completed);if(row){setFinished(true);camera.stop();navigate('/records/'+row.id)}else saving.current=false}
+ useEffect(()=>{if(!complete||!training.running||finished)return;const t=setTimeout(()=>{if(last){if(!saving.current)void save(!training.session?.steps?.some(step=>step.completion_status==='SKIPPED'))}else training.control('next')},1200);return()=>clearTimeout(t)},[complete,last,training.running,finished,training.control,idx]);
+ async function save(completed:boolean){if(saving.current)return;saving.current=true;speech.stop();breath.stop();const row=await training.finish(completed);if(row){setFinished(true);camera.stop();navigate('/records/'+row.id)}else saving.current=false}
  async function toggleFullscreen(){const frame=cameraFrame.current;if(!frame)return;try{if(document.fullscreenElement)await document.exitFullscreen();else await frame.requestFullscreen()}catch{setFullscreen(false)}}
  const error=camera.error||training.error;
  const stepsDone=training.session?.completed_steps||0;
@@ -61,11 +63,12 @@ export default function TrainingPage({calibrationOnly=false}:{calibrationOnly?:b
  {ex.rule!=='POSTURE'&&<p className="guide-instruction">{ex.description}</p>}
  {ex.rule==='POSTURE'&&<ul className="preparation-checklist"><li>몸과 어깨의 힘을 편안하게 빼기</li><li>카메라 정면 바라보기</li><li>얼굴과 양쪽 어깨를 화면 안에 맞추기</li></ul>}
  <TongueStatusCard models={models} analysis={a} rule={ex.rule} active={camera.active&&training.running}/>
- {ex.detection_type!=='MANUAL'?<HoldProgress label={a&&!a.progress.calibrated?'중립 자세 측정':ex.detection_type==='TIMER'?'안내 시간':'유지 시간'} elapsed={a?.progress.hold_elapsed||0} target={a?.progress.hold_target||ex.hold_seconds}/>:<p className="manual-guide">동작을 마친 뒤 아래 완료 버튼을 눌러 주세요.</p>}
- <p className="rep-count">{['TIMER','MANUAL','AUDIO'].includes(ex.detection_type)?'안내·확인 횟수':'AI 조건 충족 횟수'} <b>{a?.progress.repetition||0} / {ex.repetitions}회</b></p>
+ {ex.detection_type==='BREATH_AUDIO'?<div className="speech-controls" aria-live="polite"><p>{a?.criteria.breath_sound?'숨소리 확인 · 호흡 시간 안내 중':breath.status}</p><HoldProgress label="숨소리 감지 후 안내 시간" elapsed={a?.progress.hold_elapsed||0} target={ex.hold_seconds}/><meter aria-label="마이크 소리 크기" min={0} max={1} value={breath.level}/><p>숨소리 감지 후 {ex.hold_seconds}초 안내를 마치면 자동 이동합니다. 들숨·날숨 방향과 호흡량은 측정하지 않습니다.</p>{breath.error&&<p role="alert">{breath.error}</p>}{!breath.listening&&!complete&&!a?.criteria.breath_sound&&!a?.progress.timed_out&&<button disabled={!training.running||!a?.progress.calibrated} onClick={()=>void breath.start()}>마이크 켜기 / 다시 듣기</button>}</div>:ex.detection_type!=='MANUAL'?<HoldProgress label={a&&!a.progress.calibrated?'중립 자세 측정':ex.detection_type==='TIMER'?'안내 시간':'유지 시간'} elapsed={a?.progress.hold_elapsed||0} target={a?.progress.hold_target||ex.hold_seconds}/>:<p className="manual-guide">동작을 마친 뒤 아래 완료 버튼을 눌러 주세요.</p>}
+ <p className="rep-count">{['TIMER','MANUAL','AUDIO','BREATH_AUDIO'].includes(ex.detection_type)?'안내·확인 횟수':'AI 조건 충족 횟수'} <b>{a?.progress.repetition||0} / {ex.repetitions}회</b></p>
  {ex.detection_type==='MANUAL'&&<button disabled={!training.running||!a?.progress.calibrated||complete} onClick={()=>training.control('manual_complete')}>{ex.rule==='BREATH_IN'?'들이마시기 완료 확인':ex.rule==='BREATH_OUT'?'내쉬기 완료 확인':'직접 1회 완료 확인'}</button>}
  {ex.detection_type==='AUDIO'&&<div className="speech-controls"><button disabled={!training.running||!a?.progress.calibrated||speech.listening||complete||!speech.supported} onClick={speech.listen}>{speech.listening?'듣는 중…':'이번 발음 듣기'}</button><p>{speech.supported?'한국어 텍스트 일치만 확인합니다.':'음성 API 미지원'}</p><p>{speech.transcript}</p>{speech.error&&<p role="alert">{speech.error}</p>}<button onClick={()=>{speech.stop();training.control('timer_fallback');setAudioMode(false);localStorage.setItem('oral-audio-mode','false')}}>마이크 없이 시간 안내로 진행</button></div>}
  {ex.experimental&&<button onClick={()=>{training.control('cheek_fallback');setExperimental(false);localStorage.setItem('oral-experimental','false')}}>볼 운동을 시간 안내로 전환</button>}
+ {a?.progress.timed_out&&!complete&&<div className="step-timeout" role="status"><p>제한시간 {ex.timeout}초가 지났습니다.</p><button onClick={()=>{breath.stop();speech.stop();training.control('retry_step')}}>다시 시도</button><button onClick={()=>{breath.stop();speech.stop();if(last){training.control('skip');void save(false)}else training.control('skip')}}>이 단계 건너뛰기</button></div>}
  <p className="measurement-note">시간·직접 확인 완료는 AI 인식 성공과 별도로 기록합니다.</p>
  </aside></div>
  <details className="model-details"><summary>AI 모델 상태 · 조건 · 성능 확인</summary><ModelStatusPanel models={models} analysis={a} active={camera.active&&training.running} preparing={training.preparing} error={error}/>
